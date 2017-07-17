@@ -1,8 +1,6 @@
 <template>
 	<div class="mdl-grid">
 		<div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet mdl-cell--10-col-phone">
-
-			
 			<div>
 				Total registros {{ table.total_records }}
 				<div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
@@ -45,33 +43,37 @@
 			</table>
 			<!--Div para la paginacion-->
 			<div class="pagination">
-				<button class="mdl-button mdl-js-button">
+				<button class="mdl-button mdl-js-button"
+				v-on:click ="atrasar">
 					Atras
 				</button>
 				
 				<div class="pagination" v-for="page in table.total_pages">
 					<button class="mdl-button mdl-js-button
-					mdl-button--raised mdl-button--colored"
-					v-if="page == table.page">
+					mdl-button--raised mdl-button--colored btn-pagination"
+					v-if="page == table.page" v-on:click ="irPagina(page)">
 						{{page}}
 					</button>
 					
-					<button class="mdl-button mdl-js-button" 
-					v-else-if="page-1 == table.page || page+1 == table.page">
+					<button class="mdl-button mdl-js-button btn-pagination" 
+					v-else-if="page-1 == table.page || page+1 == table.page"
+					v-on:click ="irPagina(page)">
 						{{page}}
 					</button>
 					
-					<button class="mdl-button mdl-js-button" 
-					v-else-if="page == table.total_pages || page == 1">
+					<button class="mdl-button mdl-js-button btn-pagination" 
+					v-else-if="page == table.total_pages || page == 1"
+					v-on:click ="irPagina(page)">
 						{{page}}
 					</button>
 
-					<button class="mdl-button mdl-js-button" v-else>
+					<p  v-else>
 						...
-					</button>
+					</p>
 				</div>
 
-				<button class="mdl-button mdl-js-button">
+				<button class="mdl-button mdl-js-button"
+				v-on:click ="adelantar">
 					Siguiente
 				</button>
 			</div>
@@ -111,9 +113,10 @@
 				},
 				errors:{},
 				table:{
-					page:4,
+					page:1,
 					total_pages:1,
-					total_records:0
+					total_records:0,
+					records_per_page:1
 				}
 			}
 		},
@@ -122,13 +125,17 @@
 				var that = this;
 				this.$http.post('races',{
 					name: this.race.name
-
 				}).then(response =>{
 					// success callback
-					this.races.push({
-						name: this.race.name,
-						state: 'active'
-					})
+					if (this.races.length + 1 > this.table.records_per_page){
+						this.table.total_pages++;
+					}else{
+						this.races.push({
+							name: this.race.name,
+							state: 'active'
+						})
+					}
+					this.table.total_records++;
 					this.race.name = '';
 				},response =>{
 					// error callback
@@ -138,6 +145,29 @@
 					}
 					this.errors = list;
 				});
+			},
+			adelantar(){
+				this.table.page++;
+				this.actualizarTabla();
+			},
+			atrasar(){
+				this.table.page--;
+				this.actualizarTabla();
+			},
+			irPagina(pagina){
+				this.table.page = pagina;
+				this.actualizarTabla();
+			},
+			actualizarTabla(){
+				this.$http.get('races',{
+						params:  {page: this.table.page}
+					})
+					.then(response =>{
+						return response.json()
+					})
+					.then(response =>{
+						this.races = response.data
+					});
 			}
 		},
 		created(){
@@ -149,10 +179,10 @@
 						return response.json()
 					})
 					.then(response =>{
-						console.log(response)
-						this.races = response.data
-						this.table.total_records =response.records
-						this.table.total_pages = response.pages
+						this.races = response.data;
+						this.table.total_records =response.records;
+						this.table.total_pages = response.pages;
+						this.table.records_per_page = response.records_per_page;
 					});
 		}
 	}

@@ -42,6 +42,15 @@
 	.pagination{
 		display: inline-block;
 	}
+
+	.btn-pagination{
+		font-size: 10px !important;
+		padding: 5px !important;
+		padding-top: 0px !important;
+		size: 10px !important;
+		min-width: 30px !important;
+		height: 30px !important;
+	}
 	
 	.content {
 		max-width: 1080px;
